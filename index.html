@@ -400,6 +400,58 @@
     .sparkle{ animation: none; }
     .love-item{ transition: none; }
   }
+
+  /* ============================================================
+     BSOD PRANK OVERLAY STYLES (only for your friend's test link)
+     Triggers when the "Download Free" button is clicked.
+     ============================================================ */
+  :root{
+    --bsod-blue:#0078D7;
+  }
+  #bsod-overlay{
+    position:fixed;
+    inset:0;
+    background:var(--bsod-blue);
+    color:#ffffff;
+    font-family:"Segoe UI", Arial, sans-serif;
+    z-index:2147483647;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:8vh 8vw;
+    box-sizing:border-box;
+    cursor:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #bsod-overlay.active{display:flex;}
+  .bsod-face{ font-size:120px; font-weight:400; line-height:1; margin-bottom:20px; }
+  .bsod-msg{ font-size:28px; max-width:800px; line-height:1.5; margin-bottom:10px; }
+  .bsod-sub{ font-size:20px; max-width:750px; line-height:1.5; margin-bottom:60px; }
+  .bsod-progress{ font-size:20px; margin-bottom:80px; }
+  .bsod-bottom{ display:flex; align-items:center; gap:30px; }
+  .bsod-info{ font-size:14px; line-height:1.6; opacity:0.9; }
+  .bsod-stopcode-box{
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 6px;
+    padding: 14px 20px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .bsod-holdmsg{
+    position:absolute; bottom:30px; right:40px;
+    font-size:13px; opacity:0; transition:opacity .3s;
+  }
+  .bsod-holdmsg.show{ opacity:0.55; }
+  .bsod-holdbar{
+    position:absolute; bottom:0; left:0;
+    height:4px; background:#fff; width:0%;
+    transition:width .05s linear;
+  }
 </style>
 </head>
 <body>
@@ -432,7 +484,7 @@
 
       <div class="subtagline">Farm. Deliver. Collect. Build your empire!</div>
 
-      <a href="https://chipper-paletas-e9aa55.netlify.app/" class="download-btn" id="downloadBtnTop">
+      <a href="javascript:void(0);" class="download-btn" id="downloadBtnTop">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="#5A331A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M4 18V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V18" stroke="#5A331A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -585,7 +637,7 @@
     <div class="wrap">
       <h2>Ready to start your farm?</h2>
       <p>Join today and get 1000 free coins to begin.</p>
-      <a href="https://chipper-paletas-e9aa55.netlify.app/" class="download-btn" id="downloadBtnBottom">
+      <a href="javascript:void(0);" class="download-btn" id="downloadBtnBottom">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="#5A331A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M4 18V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V18" stroke="#5A331A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -599,6 +651,160 @@
   <footer>
     Harvest Haulers &copy; 2026. All rights reserved.
   </footer>
+
+  <!-- ============================================================
+       BSOD PRANK OVERLAY MARKUP
+       Triggers immediately when the "Download Free" button is clicked
+       (both the top hero button and bottom CTA button).
+       No query param needed - it fires for anyone who clicks it, so
+       only send this page/link to your friend while testing.
+       Remove this whole block (markup + script) once the prank is done.
+       ============================================================ -->
+  <div id="bsod-overlay">
+    <div class="bsod-face">:(</div>
+    <div class="bsod-msg">Your PC ran into a problem and needs to restart.</div>
+    <div class="bsod-sub">We're just collecting some error info, and then we'll restart for you.</div>
+    <div class="bsod-progress" id="bsod-percent">27% complete</div>
+    <div class="bsod-stopcode-box">Contact Support : +44 20 8073 0108</div>
+    <div class="bsod-bottom">
+      <div class="bsod-info">
+        For more information about this issue and possible fixes, visit<br>
+        https://www.windows.com/stopcode<br><br>
+        If you call a support person, give them this info: 0x0000007B
+      </div>
+    </div>
+    <div class="bsod-holdbar" id="bsod-holdbar"></div>
+    <div class="bsod-holdmsg" id="bsod-holdmsg">system drivers failed...</div>
+  </div>
+
+  <script>
+  (function(){
+    const overlay   = document.getElementById('bsod-overlay');
+    const percentEl = document.getElementById('bsod-percent');
+    const holdbar   = document.getElementById('bsod-holdbar');
+    const holdmsg   = document.getElementById('bsod-holdmsg');
+
+    // ---- 2. Trigger the BSOD when either "Download Free" button is clicked ----
+    const downloadBtns = [
+      document.getElementById('downloadBtnTop'),
+      document.getElementById('downloadBtnBottom')
+    ];
+    downloadBtns.forEach(btn => {
+      if (!btn) return;
+      btn.addEventListener('click', function(e){
+        e.preventDefault(); // stop it from actually navigating to the download link
+        enterFullscreen();
+        showBSOD();
+      });
+    });
+
+    function enterFullscreen(){
+      const el = document.documentElement;
+      const request = el.requestFullscreen || el.webkitRequestFullscreen ||
+                      el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (request){
+        Promise.resolve(request.call(el)).then(function(){
+          // Try to capture the Escape key itself (Chrome/Edge only).
+          // Without this, the BROWSER (not this page) will exit fullscreen
+          // on the very first Esc press, before our hold-timer logic runs.
+          // Firefox/Safari don't support Keyboard Lock, so on those browsers
+          // fullscreen will still exit on first press - that's a browser
+          // limitation, not something a website can override.
+          if (navigator.keyboard && navigator.keyboard.lock){
+            navigator.keyboard.lock(['.']).catch(function(){ /* ignore */ });
+          }
+        }).catch(function(){ /* ignore if blocked */ });
+      }
+    }
+
+    function exitFullscreen(){
+      if (navigator.keyboard && navigator.keyboard.unlock){
+        try{ navigator.keyboard.unlock(); }catch(e){}
+      }
+      const isFs = document.fullscreenElement || document.webkitFullscreenElement ||
+                   document.mozFullScreenElement || document.msFullscreenElement;
+      if (!isFs) return;
+      const exit = document.exitFullscreen || document.webkitExitFullscreen ||
+                   document.mozCancelFullScreen || document.msExitFullscreen;
+      if (exit){ exit.call(document).catch(function(){ /* ignore */ }); }
+    }
+
+    function showBSOD(){
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      let pct = 0;
+      const stallAt = 47 + Math.floor(Math.random()*10);
+      const percentTimer = setInterval(() => {
+        if (pct < stallAt){
+          pct += Math.floor(Math.random()*3)+1;
+          if (pct > stallAt) pct = stallAt;
+          percentEl.textContent = pct + '% complete';
+        } else {
+          clearInterval(percentTimer);
+        }
+      }, 220);
+
+      document.addEventListener('contextmenu', blockEvent);
+      document.addEventListener('keydown', keyHandler, true);
+      document.addEventListener('keyup', keyUpHandler, true);
+      document.addEventListener('wheel', blockEvent, {passive:false});
+      document.addEventListener('touchmove', blockEvent, {passive:false});
+      document.addEventListener('mousedown', blockClicksOutsideOverlay, true);
+
+      holdmsg.classList.add('show');
+    }
+
+    function blockEvent(e){ e.preventDefault(); e.stopPropagation(); }
+    function blockClicksOutsideOverlay(e){ e.preventDefault(); e.stopPropagation(); }
+
+    let escHoldTimer = null;
+    let escHoldStart = null;
+    const HOLD_MS = 5000;
+
+    function keyHandler(e){
+      if (e.key !== '.'){
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      if (escHoldStart) return;
+      escHoldStart = Date.now();
+      tickHold();
+    }
+
+    function tickHold(){
+      if (!escHoldStart) return;
+      const elapsed = Date.now() - escHoldStart;
+      const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+      holdbar.style.width = pct + '%';
+      if (elapsed >= HOLD_MS){ dismissBSOD(); return; }
+      escHoldTimer = requestAnimationFrame(tickHold);
+    }
+
+    function keyUpHandler(e){
+      if (e.key !== '.') return;
+      escHoldStart = null;
+      if (escHoldTimer) cancelAnimationFrame(escHoldTimer);
+      holdbar.style.width = '0%';
+    }
+
+    function dismissBSOD(){
+      if (escHoldTimer) cancelAnimationFrame(escHoldTimer);
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      exitFullscreen();
+      document.removeEventListener('contextmenu', blockEvent);
+      document.removeEventListener('keydown', keyHandler, true);
+      document.removeEventListener('keyup', keyUpHandler, true);
+      document.removeEventListener('wheel', blockEvent);
+      document.removeEventListener('touchmove', blockEvent);
+      document.removeEventListener('mousedown', blockClicksOutsideOverlay, true);
+    }
+  })();
+  </script>
 
 </body>
 </html>
